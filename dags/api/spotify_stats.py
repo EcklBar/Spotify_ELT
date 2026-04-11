@@ -1,71 +1,80 @@
 import requests
 import base64
-import os
-import webbrowser
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="./.env")
+import json
+from datetime import date
 
-client_id = os.getenv("SPOTIFY_CLIENT_ID")
-client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+from airflow.decorators import task
+from airflow.models import Variable
 
-REDIRECT_URI = "http://127.0.0.1:8000/callback"
-SCOPE = "user-read-recently-played"
-AUTH_URL = "https://accounts.spotify.com/authorize"
+CLIENT_ID = Variable.get("SPOTIFY_CLIENT_ID")
+CLIENT_SECRET = Variable.get("SPOTIFY_CLIENT_SECRET")
+REFRESH_TOKEN = Variable.get("SPOTIFY_REFRESH_TOKEN")
+
 TOKEN_URL = "https://accounts.spotify.com/api/token"
-
-def get_auth_url():
-    return (
-        f"{AUTH_URL}?response_type=code"
-        f"&client_id={client_id}"
-        f"&scope={SCOPE}"
-        f"&redirect_uri={REDIRECT_URI}"
-    )
-    
-
-class CallbackHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        query = parse_qs(urlparse(self.path).query)
-        self.server.auth_code = query.get("code", [None])[0]
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Authorization successful! You can close this tab.")
-        
-    def log_message(self, format, *args):
-        pass
-    
-    
-def get_authorization_code():
-    webbrowser.open(get_auth_url())
-    server = HTTPServer(("127.0.0.1", 8000), CallbackHandler)
-    server.handle_request()
-    return server.auth_code
+RECENTLY_PLAYED_URL = "https://api.spotify.com/v1/me/player/recently-played"
 
 
-def exchange_code_for_tokens(code):
-    # Encode credentials
-    auth_string = f"{client_id}:{client_secret}"
+@task
+def get_access_token():
+    auth_string = f"{CLIENT_ID}:{CLIENT_SECRET}"
     auth_base64 = base64.b64encode(auth_string.encode("utf-8")).decode("utf-8")
 
-    # Request access token
     response = requests.post(
         TOKEN_URL,
         headers={
             "Authorization": f"Basic {auth_base64}",
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
         },
-        data={"grant_type": "authorization_code",
-              "code": code,
-              "redirect_uri": REDIRECT_URI,
-              },
+        data={
+            "grant_type": "refresh_token",
+            "refresh_token": REFRESH_TOKEN,
+        },
     )
 
-    return response.json()
+    response.raise_for_status()
 
-if __name__ == "__main__":
-    code = get_authorization_code()
-    tokens = exchange_code_for_tokens(code)
-    print(f"Access Token: {tokens['access_token'][:20]}...")
-    print(f"Refresh Token: {tokens['refresh_token']}")
-    print("\nSave your refresh token in your .env file as REFRESH_TOKEN")
+    return response.json()["access_token"]
+
+
+@task
+def get_recently_played(access_token):
+    response = requests.get(
+        RECENTLY_PLAYED_URL,
+        headers={"Authorization": f"Bearer {access_token}"},
+        params={"limit": 50},
+    )
+
+    response.raise_for_status()
+
+    return response.json()["items"]
+
+
+@task
+def extract_track_data(raw_data):
+    extracted_data = []
+
+    for item in raw_data:
+        track = item["track"]
+        artists = ", ".join([artist["name"] for artist in track["artists"]])
+
+        track_data = {
+            "track_id": track["id"],
+            "track_name": track["name"],
+            "artist_name": artists,
+            "album_name": track["album"]["name"],
+            "played_at": item["played_at"],
+            "duration_ms": track["duration_ms"],
+            "popularity": track["popularity"],
+        }
+
+        extracted_data.append(track_data)
+
+    return extracted_data
+
+
+@task
+def save_to_json(extracted_data):
+    file_path = f"./data/spotify_data_{date.today()}.json"
+
+    with open(file_path, "w", encoding="utf-8") as json_outfile:
+        json.dump(extracted_data, json_outfile, indent=4, ensure_ascii=False)
