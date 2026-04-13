@@ -8,6 +8,7 @@ load_dotenv(dotenv_path="./.env")
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+artist_names = json.loads(os.getenv("ARTIST_NAMES"))
 
 def get_access_token():
     
@@ -38,25 +39,51 @@ def get_access_token():
     except requests.exceptions.RequestException as e:
      		raise e
 
-def get_artist(token):
+def get_artist_ids(token, artist_names):
     
-    try: 
-    
-        artist_id = "3QSQFmccmX81fWCUSPTS7y"  # Dean Lewis
+    try:
+         
         headers = {"Authorization": f"Bearer {token}"}
-        base_url = f"https://api.spotify.com/v1/artists/{artist_id}"
+        artist_ids = []
 
-        response = requests.get(base_url, headers=headers)
+        for name in artist_names:
+            url = f"https://api.spotify.com/v1/search?q={name}&type=artist&limit=1"
 
-        response.raise_for_status()
+            response = requests.get(url, headers=headers)
+        
+            response.raise_for_status()
 
-        response_json = response.json()
+            artist = response.json()["artists"]["items"][0]
+            artist_ids.append(artist["id"])
 
-        print(json.dumps(response_json, indent=4))
+            print(f"{artist['name']} → {artist['id']}")
+
+        return artist_ids
         
     except requests.exceptions.RequestException as e:
         raise e
 
+def get_artist_album(token, artist_ids):
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    all_albums = []
+    
+    for artist_id in artist_ids: 
+        url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+        
+        response = requests.get(url, headers=headers)
+        
+        response.raise_for_status()
+        
+        albums = response.json()["items"]
+        all_albums.extend(albums)
+        
+        print(json.dumps(albums, indent=4))
+    
+    return all_albums
+    
+
 if __name__ == "__main__":
     token = get_access_token()
-    print(get_artist(token))
+    artist_ids = get_artist_ids(token, artist_names)
+    print(get_artist_album(token, artist_ids))
