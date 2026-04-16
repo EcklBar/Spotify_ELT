@@ -8,6 +8,7 @@ load_dotenv(dotenv_path="./.env")
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+artist_names = json.loads(os.getenv("ARTIST_NAMES"))
 
 def get_access_token():
     
@@ -42,30 +43,34 @@ def get_access_token():
     except requests.exceptions.RequestException as e:
      		raise e
 
-def get_top_ten_artists_by_genre(token, genre, limit=10):
-    
-    try:
-        
-        url = f"https://api.spotify.com/v1/search?q=genre:{genre}&type=artist&limit={limit}"
-        headers = {"Authorization": f"Bearer {token}"}
-        
-        # A GET request
-        response = requests.get(url, headers=headers)
-        
-        response.raise_for_status()
 
-        response_json = response.json()
+def get_artist_ids(token, artist_names):
+    
+    try: 
         
-        artists = response_json["artists"]["items"]
+        headers = {"Authorization": f"Bearer {token}"}
+        artists = []
         
-        print(artists[0].keys())
+        for name in artist_names:
+            url = f"https://api.spotify.com/v1/search?q={name}&type=artist&limit=1"
+            
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            
+            response_json = response.json()
+            
+            artist = response_json["artists"]["items"][0]
+            artists.append({
+                "artist_id": artist["id"],
+                "artist_name": artist["name"]
+            })
         
         return artists
     
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException as e: 
         raise e 
-    
+
 
 if __name__ == "__main__":
     token = get_access_token()
-    get_top_ten_artists_by_genre(token, "pop", 10)
+    print(get_artist_ids(token, artist_names))
