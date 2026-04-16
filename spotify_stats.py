@@ -71,6 +71,29 @@ def get_artist_ids(token, artist_names):
         raise e 
 
 
+def get_artist_albums(token, artists):
+    
+    try:
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        all_ablums = []
+        
+        for artist in artists:
+            url = f"https://api.spotify.com/v1/artists/{artist['artist_id']}/albums"
+            
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            
+            response_json = response.json()
+            
+            albums = response_json["items"]
+            
+            
+        
+    except requests.exceptions.RequestException as e:
+        raise e
+
+
 if __name__ == "__main__":
     token = get_access_token()
     print(get_artist_ids(token, artist_names))
