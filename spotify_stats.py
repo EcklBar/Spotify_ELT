@@ -2,6 +2,7 @@ import requests
 import os
 import base64
 import json
+from datetime import date
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path="./.env")
@@ -58,6 +59,7 @@ def get_artist_ids(token, artist_names):
             response.raise_for_status()
             
             response_json = response.json()
+            # print(json.dumps(response_json, indent=4))
             
             artist = response_json["artists"]["items"][0]
             artists.append({
@@ -76,7 +78,7 @@ def get_artist_albums(token, artists):
     try:
         
         headers = {"Authorization": f"Bearer {token}"}
-        all_ablums = []
+        album_list = []
         
         for artist in artists:
             url = f"https://api.spotify.com/v1/artists/{artist['artist_id']}/albums"
@@ -85,15 +87,73 @@ def get_artist_albums(token, artists):
             response.raise_for_status()
             
             response_json = response.json()
+            # print(json.dumps(response_json, indent=4))
+            for album in response_json.get("items", []):
+                album_list.append({
+                    "album_id": album["id"],
+                    "album_name": album["name"],
+                    "artist_id": artist["artist_id"],
+                    "artist_name": artist["artist_name"],
+                    "album_release_date": album["release_date"],
+                    "album_total_tracks": album["total_tracks"],
+                    "album_url": album["external_urls"]["spotify"]
+                })
             
-            albums = response_json["items"]
-            
-            
+        return album_list
         
     except requests.exceptions.RequestException as e:
         raise e
 
+def get_album_tracks(token, albums):
+    
+    try:
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        tracks_list = []
+        
+        for album in albums:
+            url = f"https://api.spotify.com/v1/albums/{album['album_id']}/tracks"
+            
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            
+            response_json = response.json()
+            # print(json.dumps(response_json, indent=4))
+            
+            for track in response_json.get("items", []):
+                tracks_list.append({
+                    "track_id": track["id"],
+                    "track_name": track["name"],
+                    "album_id": album["album_id"],
+                    "album_name": album["album_name"],
+                    "artist_id": album["artist_id"],
+                    "artist_name": album["artist_name"],
+                    "duration_ms": track["duration_ms"],
+                    "disc_number": track["disc_number"],
+                    "track_number": track["track_number"],
+                    "explicit": track["explicit"],
+                })
+            
+        return tracks_list
+            
+    except requests.exceptions.RequestException as e:
+        raise e
+    
+def save_to_json(artists, albums, tracks):
+    file_path = f"./data/Spotify_data_{date.today()}.json"
+    
+    data = {
+        "artists": artists,
+        "albums": albums,
+        "tracks": tracks,
+    }
+
+    with open(file_path, 'w', encoding='utf-8') as json_outfile:
+        json.dump(data, json_outfile, indent=4, ensure_ascii=False)
 
 if __name__ == "__main__":
     token = get_access_token()
-    print(get_artist_ids(token, artist_names))
+    artists = get_artist_ids(token, artist_names)
+    albums = get_artist_albums(token, artists)
+    tracks = get_album_tracks(token, albums)
+    save_to_json(artists, albums, tracks)
