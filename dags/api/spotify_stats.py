@@ -1,16 +1,19 @@
 import requests
-import os
 import base64
 import json
 from datetime import date
 
+import os
 from dotenv import load_dotenv
 load_dotenv(dotenv_path="./.env")
+
+from airflow.decorators import task
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 artist_names = json.loads(os.getenv("ARTIST_NAMES"))
 
+@task
 def get_access_token():
     
     try: 
@@ -44,7 +47,7 @@ def get_access_token():
     except requests.exceptions.RequestException as e:
      		raise e
 
-
+@task
 def get_artist_ids(token, artist_names):
     
     try: 
@@ -72,7 +75,7 @@ def get_artist_ids(token, artist_names):
     except requests.exceptions.RequestException as e: 
         raise e 
 
-
+@task
 def get_artist_albums(token, artists):
     
     try:
@@ -103,7 +106,8 @@ def get_artist_albums(token, artists):
         
     except requests.exceptions.RequestException as e:
         raise e
-
+    
+@task
 def get_album_tracks(token, albums):
     
     try:
@@ -139,6 +143,7 @@ def get_album_tracks(token, albums):
     except requests.exceptions.RequestException as e:
         raise e
     
+@task
 def save_to_json(artists, albums, tracks):
     file_path = f"./data/Spotify_data_{date.today()}.json"
     
