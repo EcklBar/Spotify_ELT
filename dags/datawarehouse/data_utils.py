@@ -23,7 +23,7 @@ def create_schema(schema):
 
 
 def create_tables(schema):
-    conn, cur = close_conn_cursor()
+    conn, cur = get_conn_cursor()
     
     if schema == "staging":
         artists_sql = f"""
@@ -33,7 +33,7 @@ def create_tables(schema):
             );
         """
         albums_sql = f"""
-            CREATE TABLE IF NOT EXIST {schema}.albums (
+            CREATE TABLE IF NOT EXISTS {schema}.albums (
                 "album_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "album_name" TEXT NOT NULL,
                 "artist_id" VARCHAR(22) NOT NULL,
@@ -44,7 +44,7 @@ def create_tables(schema):
             );
         """
         song_sql = f"""
-            CREATE TABLE IF NOT EXIST {schema}.songs (
+            CREATE TABLE IF NOT EXISTS {schema}.songs (
                 "track_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "track_name" TEXT NOT NULL,
                 "album_id" VARCHAR(22) NOT NULL,
@@ -65,7 +65,7 @@ def create_tables(schema):
             );
         """
         albums_sql = f"""
-            CREATE TABLE IF NOT EXIST {schema}.albums (
+            CREATE TABLE IF NOT EXISTS {schema}.albums (
                 "album_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "album_name" TEXT NOT NULL,
                 "artist_id" VARCHAR(22) NOT NULL,
@@ -76,7 +76,7 @@ def create_tables(schema):
             );
         """
         song_sql = f"""
-            CREATE TABLE IF NOT EXIST {schema}.songs (
+            CREATE TABLE IF NOT EXISTS {schema}.songs (
                 "track_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "track_name" TEXT NOT NULL,
                 "album_id" VARCHAR(22) NOT NULL,
