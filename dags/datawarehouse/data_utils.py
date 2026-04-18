@@ -6,3 +6,7 @@ def get_conn_cursor():
     conn = hook.get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     return conn, cur
+
+def close_conn_cursor(cur, conn):
+    cur.close()
+    conn.close()
