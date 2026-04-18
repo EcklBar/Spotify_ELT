@@ -90,3 +90,20 @@ def create_tables(schema):
                 "explicit" BOOLEAN NOT NULL
             );
         """
+    
+    cur.execute(artists_sql)
+    cur.execute(albums_sql)
+    cur.execute(song_sql)
+    
+    conn.commit()
+    
+    close_conn_cursor(cur, conn)
+
+    
+def get_ids(cur, schema, table_name, id_column):
+    cur.execute(f"""SELECT "{id_column}" FROM {schema}.{table_name};""")
+    rows = cur.fetchall()
+    
+    ids = [row[id_column] for row in rows]
+    
+    return ids
