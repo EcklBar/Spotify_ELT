@@ -8,7 +8,7 @@ def insert_row(cur, conn, schema, table, row, columns):
     try: 
         
         cols = ", ".join([f'"{c}"' for c in columns])
-        vals = ", ".join([f"%({c}s)" for c in columns])
+        vals = ", ".join([f"%({c})s" for c in columns])
         
         cur.execute(
             f"""INSERT INTO {schema}.{table} ({cols}) VALUES ({vals});""",
@@ -38,7 +38,7 @@ def update_row(cur, conn, schema, table, row, id_column, update_columns):
         logger.info(f"Update row with {id_column}: {row[id_column]}")
     
     except Exception as e:
-        logger.erorr(f"Error updating row in {schema}.{table}: {e}")
+        logger.error(f"Error updating row in {schema}.{table}: {e}")
         raise e
     
 
@@ -56,5 +56,5 @@ def delete_rows(cur, conn, schema, table, id_column, ids_to_delete):
         logger.info(f"Deleted rows with {id_column}: {ids_to_delete}")
         
     except Exception as e:
-        logger.error(f"Error deleting rowa from {schema}.{table}: {e}")
+        logger.error(f"Error deleting rows from {schema}.{table}: {e}")
         raise e
