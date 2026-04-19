@@ -11,7 +11,10 @@ def insert_row(cur, conn, schema, table, row, columns):
         vals = ", ".join([f"%({c})s" for c in columns])
         
         cur.execute(
-            f"""INSERT INTO {schema}.{table} ({cols}) VALUES ({vals});""",
+            f"""
+            INSERT INTO {schema}.{table} ({cols}) 
+            VALUES ({vals});
+            """,
             row,
         )
         conn.commit()
@@ -30,7 +33,10 @@ def update_row(cur, conn, schema, table, row, id_column, update_columns):
         set_clause = ", ".join([f'"{c}" = %({c})s' for c in update_columns])
         
         cur.execute(
-            f"""UPDATE {schema}.{table} set {set_clause} WHERE "{id_column}"  = %({id_column})s;""",
+            f"""
+            UPDATE {schema}.{table} 
+            set {set_clause} 
+            WHERE "{id_column}" = %({id_column})s;""",
             row,
         )
         conn.commit()
@@ -49,7 +55,10 @@ def delete_rows(cur, conn, schema, table, id_column, ids_to_delete):
         ids_str = " ,".join([f"'{id}'" for id in ids_to_delete])
         
         cur.execute(
-            f"""DELETE FROM {schema}.{table} WHERE "{id_column}" IN ({ids_str});"""
+            f"""
+            DELETE FROM {schema}.{table} 
+            WHERE "{id_column}" IN ({ids_str});
+            """
         )
         conn.commit()
         
