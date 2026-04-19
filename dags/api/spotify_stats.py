@@ -97,7 +97,6 @@ def get_artist_albums(token, artists):
                     "album_id": album["id"],
                     "album_name": album["name"],
                     "artist_id": artist["artist_id"],
-                    "artist_name": artist["artist_name"],
                     "album_release_date": album["release_date"],
                     "album_total_tracks": album["total_tracks"],
                     "album_url": album["external_urls"]["spotify"]
@@ -130,9 +129,7 @@ def get_album_tracks(token, albums):
                     "track_id": track["id"],
                     "track_name": track["name"],
                     "album_id": album["album_id"],
-                    "album_name": album["album_name"],
                     "artist_id": album["artist_id"],
-                    "artist_name": album["artist_name"],
                     "duration_ms": track["duration_ms"],
                     "disc_number": track["disc_number"],
                     "track_number": track["track_number"],
