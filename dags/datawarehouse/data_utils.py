@@ -37,7 +37,6 @@ def create_tables(schema):
                 "album_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "album_name" TEXT NOT NULL,
                 "artist_id" VARCHAR(22) NOT NULL,
-                "artist_name" TEXT NOT NULL,
                 "album_release_date" VARCHAR(10) NOT NULL,
                 "album_total_tracks" INT NOT NULL,
                 "album_url" TEXT NOT NULL
@@ -48,9 +47,7 @@ def create_tables(schema):
                 "track_id" VARCHAR(22) PRIMARY KEY NOT NULL,
                 "track_name" TEXT NOT NULL,
                 "album_id" VARCHAR(22) NOT NULL,
-                "album_name" TEXT NOT NULL,
                 "artist_id" VARCHAR(22) NOT NULL,
-                "artist_name" TEXT NOT NULL,
                 "duration_ms" INT NOT NULL,
                 "disc_number" INT NOT NULL,
                 "track_number" INT NOT NULL,
