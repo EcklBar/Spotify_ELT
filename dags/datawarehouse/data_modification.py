@@ -16,6 +16,8 @@ def insert_row(cur, conn, schema, table, row, columns):
         )
         conn.commit()
         
+        logger.info(f"Inserted row with {columns[0]}: {row[columns[0]]}")
+        
     except Exception as e: 
         logger.error(f"Error inserting row into {schema}.{table}: {e}")
         raise e
@@ -32,6 +34,8 @@ def update_row(cur, conn, schema, table, row, id_column, update_columns):
             row,
         )
         conn.commit()
+        
+        logger.info(f"Update row with {id_column}: {row[id_column]}")
     
     except Exception as e:
         logger.erorr(f"Error updating row in {schema}.{table}: {e}")
@@ -48,6 +52,8 @@ def delete_rows(cur, conn, schema, table, id_column, ids_to_delete):
             f"""DELETE FROM {schema}.{table} WHERE "{id_column}" IN ({ids_str});"""
         )
         conn.commit()
+        
+        logger.info(f"Deleted rows with {id_column}: {ids_to_delete}")
         
     except Exception as e:
         logger.error(f"Error deleting rowa from {schema}.{table}: {e}")
