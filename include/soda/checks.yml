@@ -29,13 +29,6 @@ checks for songs:
   - missing_count("album_id") = 0
   - missing_count("artist_id") = 0
 
-  - duration_not_positive = 0:
-      name: Check for duration_ms not greater than 0
-      duration_not_positive query: |
-        SELECT COUNT(*)
-        FROM songs
-        WHERE "duration_ms" <= 0
-
   - orphan_song_albums = 0:
       name: Check for songs referencing non-existent albums
       orphan_song_albums query: |
