@@ -13,6 +13,7 @@ from api.spotify_stats import (
 )
 
 from datawarehouse.dwh import staging_table, core_table
+from dataquality.soda import spotify_elt_data_quality
 
 
 # Define the local timezone
@@ -68,3 +69,20 @@ with DAG(
     
     # Define dependencies
     update_staging >> update_core
+    
+
+# DAG 3: data_quality
+with DAG(
+    dag_id="data_quality",
+    default_args=default_args,
+    description="DAG to check the data quality on both layers in the database",
+    schedule="0 16 * * *",
+    catchup=False,
+) as dag_update:
+        
+    # Define tasks
+    soda_validate_staging = spotify_elt_data_quality("staging")
+    soda_validate_core = spotify_elt_data_quality("core")
+    
+    # Define dependencies
+    soda_validate_staging >> soda_validate_core
