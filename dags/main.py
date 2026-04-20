@@ -34,6 +34,10 @@ default_args = {
     # 'end_date': datetime(2030, 12, 31, tzinfo=local_tz),
 }
 
+# Variables
+staging_schema = "staging"
+core_schema = "core"
+
 # DAG 1: produce_json
 with DAG(
     dag_id="produce_json",
@@ -79,10 +83,10 @@ with DAG(
     schedule="0 16 * * *",
     catchup=False,
 ) as dag_update:
-        
+
     # Define tasks
-    soda_validate_staging = spotify_elt_data_quality("staging")
-    soda_validate_core = spotify_elt_data_quality("core")
+    soda_validate_staging = spotify_elt_data_quality(staging_schema)
+    soda_validate_core = spotify_elt_data_quality(core_schema)
     
     # Define dependencies
     soda_validate_staging >> soda_validate_core
