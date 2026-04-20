@@ -40,7 +40,7 @@ with DAG(
     description="DAG to produce JSON file with raw data",
     schedule="0 14 * * *",
     catchup=False,
-) as dag:
+) as dag_produce:
     
     # Define tasks
     token = get_access_token()
@@ -60,7 +60,7 @@ with DAG(
     description="DAG to process JSON file and insert data into both staging and core schemas",
     schedule="0 15 * * *",
     catchup=False,
-) as dag:
+) as dag_update:
     
     # Define tasks
     update_staging = staging_table()
