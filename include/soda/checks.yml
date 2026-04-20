@@ -1,0 +1,45 @@
+checks for artists:
+  - missing_count("artist_id") = 0
+  - duplicate_count("artist_id") = 0
+  - missing_count("artist_name") = 0
+
+checks for albums:
+  - missing_count("album_id") = 0
+  - duplicate_count("album_id") = 0
+  - missing_count("artist_id") = 0
+
+  - album_total_tracks_not_positive = 0:
+      name: Check for album_total_tracks not greater than 0
+      album_total_tracks_not_positive query: |
+        SELECT COUNT(*)
+        FROM albums
+        WHERE "album_total_tracks" <= 0
+
+  - orphan_album_artists = 0:
+      name: Check for albums referencing non-existent artists
+      orphan_album_artists query: |
+        SELECT COUNT(*)
+        FROM albums a
+        LEFT JOIN artists ar ON a."artist_id" = ar."artist_id"
+        WHERE ar."artist_id" IS NULL
+
+checks for songs:
+  - missing_count("track_id") = 0
+  - duplicate_count("track_id") = 0
+  - missing_count("album_id") = 0
+  - missing_count("artist_id") = 0
+
+  - duration_not_positive = 0:
+      name: Check for duration_ms not greater than 0
+      duration_not_positive query: |
+        SELECT COUNT(*)
+        FROM songs
+        WHERE "duration_ms" <= 0
+
+  - orphan_song_albums = 0:
+      name: Check for songs referencing non-existent albums
+      orphan_song_albums query: |
+        SELECT COUNT(*)
+        FROM songs s
+        LEFT JOIN albums a ON s."album_id" = a."album_id"
+        WHERE a."album_id" IS NULL
